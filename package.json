@@ -1,5 +1,5 @@
 {
-  "name": "integra-littlefs-cpp",
+  "name": "hwlib-littlefs-cpp",
   "private": true,
   "devDependencies": {
     "@commitlint/cli": "^19.5.0",

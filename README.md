@@ -2,7 +2,7 @@
 
 A C++ wrapper for littlefs: every buffer inside the object, no allocation, and a file that closes itself.
 
-Part of [integra-lib](https://github.com/integra-lib) — architecture-independent C++20
+Part of [hwlib](https://github.com/integra-lib) — architecture-independent C++20
 components shared between firmware projects. Header-only,
 no exceptions, no RTTI.
 
@@ -12,19 +12,19 @@ littlefs itself is not part of this component, and has no CMake build of its own
 project provides a target for it, and names it if it is not called `littlefs`.
 
 ```bash
-git submodule add git@github.com:integra-lib/littlefs-cpp.git external/integra/littlefs-cpp
+git submodule add git@github.com:integra-lib/littlefs-cpp.git external/hwlib/littlefs-cpp
 ```
 
 ```cmake
 add_library(littlefs STATIC external/littlefs/lfs.c external/littlefs/lfs_util.c)
 target_include_directories(littlefs PUBLIC external/littlefs)
 
-add_subdirectory(external/integra/littlefs-cpp)   # -DINTEGRA_LITTLEFS_TARGET=<name> if yours differs
-target_link_libraries(app PRIVATE Integra::littlefs_cpp)
+add_subdirectory(external/hwlib/littlefs-cpp)   # -DHWLIB_LITTLEFS_TARGET=<name> if yours differs
+target_link_libraries(app PRIVATE Hwlib::littlefs_cpp)
 ```
 
 ```cpp
-#include <integra/littlefs.hpp>
+#include <hwlib/persistence/littlefs.hpp>
 ```
 
 Verified against littlefs v2.10.1. Each component carries its own include directory,
@@ -40,20 +40,20 @@ struct Flash   // anything with these three; Sync() too, if it has one
     int Erase(std::uint32_t block);
 };
 
-integra::Littlefs<Flash> fs{flash, {.blockSize = 4096U, .blockCount = 32U}};
+hwlib::persistence::Littlefs<Flash> fs{flash, {.blockSize = 4096U, .blockCount = 32U}};
 if (const int err = fs.MountOrFormat(); err != LFS_ERR_OK)
 {
-    LOG_ERR("filesystem: %s", integra::LittlefsErrorName(err).data());
+    LOG_ERR("filesystem: %s", hwlib::persistence::LittlefsErrorName(err).data());
 }
 
-integra::Littlefs<Flash>::File file{fs};
+hwlib::persistence::Littlefs<Flash>::File file{fs};
 if (file.Open("/ring/0001", LFS_O_WRONLY | LFS_O_CREAT | LFS_O_APPEND) == LFS_ERR_OK)
 {
     std::ignore = file.Write(record);
 }   // closed — and committed — here
 
 const auto files = fs.FileCount("/ring");
-std::ignore = fs.ForEach("/ring", integra::LittlefsEntry::eFile, [](const integra::LittlefsEntryInfo& e) {
+std::ignore = fs.ForEach("/ring", hwlib::persistence::LittlefsEntry::eFile, [](const hwlib::persistence::LittlefsEntryInfo& e) {
     Print(e.name, e.size);
 });
 ```
@@ -136,9 +136,9 @@ Every component is released on its own, tagged `vX.Y.Z`. Pre-1.0, a minor releas
 break the API, which is why dependants accept a single minor.
 
 ```bash
-git -C external/integra/littlefs-cpp fetch --tags
-git -C external/integra/littlefs-cpp checkout v0.2.0
-git add external/integra/littlefs-cpp && git commit -m "build: bump littlefs-cpp to v0.2.0"
+git -C external/hwlib/littlefs-cpp fetch --tags
+git -C external/hwlib/littlefs-cpp checkout v0.2.0
+git add external/hwlib/littlefs-cpp && git commit -m "build: bump littlefs-cpp to v0.2.0"
 ```
 
 ## In a consumer's CI

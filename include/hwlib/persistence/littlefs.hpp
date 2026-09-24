@@ -11,7 +11,7 @@
 #include <string_view>
 #include <tuple>
 
-namespace integra
+namespace hwlib::persistence
 {
 
 /// The flash under the filesystem. The signatures are those a163-cgm-firmware's
@@ -477,4 +477,4 @@ private:
     }
 }
 
-} // namespace integra
+} // namespace hwlib::persistence

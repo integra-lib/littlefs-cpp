@@ -3,7 +3,7 @@
 #include <array>
 #include <cstdint>
 #include <cstring>
-#include <integra/littlefs.hpp>
+#include <hwlib/persistence/littlefs.hpp>
 #include <string>
 #include <string_view>
 #include <type_traits>
@@ -12,9 +12,9 @@
 namespace
 {
 
-using integra::LittlefsEntry;
-using integra::LittlefsEntryInfo;
-using integra::LittlefsGeometry;
+using hwlib::persistence::LittlefsEntry;
+using hwlib::persistence::LittlefsEntryInfo;
+using hwlib::persistence::LittlefsGeometry;
 
 // NOR-like flash in RAM: erased to 0xFF, and able to fail a number of reads on
 // demand, the way a flaky bus does at boot.
@@ -76,7 +76,7 @@ public:
 
 constexpr LittlefsGeometry GEOMETRY{.blockSize = RamFlash::BLOCK_SIZE, .blockCount = RamFlash::BLOCK_COUNT};
 
-using Fs = integra::Littlefs<RamFlash>;
+using Fs = hwlib::persistence::Littlefs<RamFlash>;
 
 [[nodiscard]] std::span<const std::uint8_t> Bytes(std::string_view text)
 {
@@ -192,7 +192,7 @@ TEST(LittlefsTest, RefusesAPathLongerThanItCanTerminate)
     RamFlash flash;
     Fs fs{flash, GEOMETRY};
     ASSERT_EQ(fs.MountOrFormat(), LFS_ERR_OK);
-    const std::string tooLong(integra::LITTLEFS_PATH_MAX + 1U, 'x');
+    const std::string tooLong(hwlib::persistence::LITTLEFS_PATH_MAX + 1U, 'x');
 
     Fs::File file{fs};
     EXPECT_EQ(file.Open(tooLong, LFS_O_RDONLY), LFS_ERR_NAMETOOLONG);
@@ -349,9 +349,9 @@ TEST(LittlefsTest, RenamesRemovesAndStats)
 TEST(LittlefsTest, CallsTheDevicesSyncWhenItHasOne)
 {
     SyncingFlash flash;
-    integra::Littlefs<SyncingFlash> fs{flash, GEOMETRY};
+    hwlib::persistence::Littlefs<SyncingFlash> fs{flash, GEOMETRY};
     ASSERT_EQ(fs.MountOrFormat(), LFS_ERR_OK);
-    integra::Littlefs<SyncingFlash>::File file{fs};
+    hwlib::persistence::Littlefs<SyncingFlash>::File file{fs};
     ASSERT_EQ(file.Open("/s", LFS_O_WRONLY | LFS_O_CREAT), LFS_ERR_OK);
     ASSERT_EQ(file.Write(Bytes("x")), 1);
     ASSERT_EQ(file.Sync(), LFS_ERR_OK);
@@ -360,9 +360,9 @@ TEST(LittlefsTest, CallsTheDevicesSyncWhenItHasOne)
 
 TEST(LittlefsTest, NamesItsErrors)
 {
-    static_assert(integra::LittlefsErrorName(LFS_ERR_CORRUPT) == "LFS_ERR_CORRUPT");
-    EXPECT_EQ(integra::LittlefsErrorName(LFS_ERR_NOSPC), "LFS_ERR_NOSPC");
-    EXPECT_EQ(integra::LittlefsErrorName(-1000), "unknown littlefs error");
+    static_assert(hwlib::persistence::LittlefsErrorName(LFS_ERR_CORRUPT) == "LFS_ERR_CORRUPT");
+    EXPECT_EQ(hwlib::persistence::LittlefsErrorName(LFS_ERR_NOSPC), "LFS_ERR_NOSPC");
+    EXPECT_EQ(hwlib::persistence::LittlefsErrorName(-1000), "unknown littlefs error");
 }
 
 } // namespace
